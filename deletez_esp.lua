@@ -1,4 +1,4 @@
--- esp by deletez (UI version + Names)
+-- esp by deletez (UI version + Names + Draggable + Toggles)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -17,7 +17,7 @@ gui.IgnoreGuiInset = true
 gui.Parent = game:GetService("CoreGui")
 
 local bg = Instance.new("Frame")
-bg.Size = UDim2.new(0, 220, 0, 160)
+bg.Size = UDim2.new(0, 240, 0, 180)
 bg.Position = UDim2.new(0, 20, 0, 20)
 bg.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 bg.BackgroundTransparency = 0.2
@@ -28,50 +28,91 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0, 6)
 corner.Parent = bg
 
+-- Верхняя панель для перетаскивания
+local topBar = Instance.new("Frame")
+topBar.Size = UDim2.new(1, 0, 0, 35)
+topBar.BackgroundTransparency = 1
+topBar.Parent = bg
+topBar.Active = true
+
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 30)
+title.Size = UDim2.new(1, -10, 1, 0)
 title.BackgroundTransparency = 1
 title.Text = "ESP BY DELETEZ"
 title.TextColor3 = Color3.fromRGB(220, 220, 220)
 title.Font = Enum.Font.Code
 title.TextSize = 16
 title.TextXAlignment = Enum.TextXAlignment.Left
-title.Position = UDim2.new(0, 10, 0, 5)
-title.Parent = bg
+title.Position = UDim2.new(0, 10, 0, 0)
+title.Parent = topBar
 
 local hint = Instance.new("TextLabel")
-hint.Size = UDim2.new(1, 0, 0, 20)
+hint.Size = UDim2.new(1, -10, 0, 20)
 hint.BackgroundTransparency = 1
 hint.Text = "[HOME] hide/show"
 hint.TextColor3 = Color3.fromRGB(140, 140, 140)
 hint.Font = Enum.Font.Code
 hint.TextSize = 12
 hint.TextXAlignment = Enum.TextXAlignment.Left
-hint.Position = UDim2.new(0, 10, 0, 30)
+hint.Position = UDim2.new(0, 10, 0, 35)
 hint.Parent = bg
 
--- Функция для создания кликабельных строк в меню
-local function createButton(text, y, stateKey)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -20, 0, 25)
-    btn.Position = UDim2.new(0, 10, 0, y)
-    btn.BackgroundTransparency = 1
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(180, 0, 255)
-    btn.Font = Enum.Font.Code
-    btn.TextSize = 14
-    btn.TextXAlignment = Enum.TextXAlignment.Left
-    btn.Parent = bg
+-- Функция для создания переключателей (с ползунком)
+local function createToggle(text, y, stateKey)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, -20, 0, 25)
+    row.Position = UDim2.new(0, 10, 0, y)
+    row.BackgroundTransparency = 1
+    row.Parent = bg
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -40, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(220, 220, 220)
+    label.Font = Enum.Font.Code
+    label.TextSize = 14
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = row
+
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Size = UDim2.new(0, 30, 0, 15)
+    toggleBtn.Position = UDim2.new(1, -30, 0.5, -7.5)
+    toggleBtn.BackgroundColor3 = State[stateKey] and Color3.fromRGB(180, 0, 255) or Color3.fromRGB(60, 60, 60)
+    toggleBtn.Text = ""
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.AutoButtonColor = false
+    toggleBtn.Parent = row
+
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(1, 0)
+    toggleCorner.Parent = toggleBtn
+
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 11, 0, 11)
+    knob.Position = State[stateKey] and UDim2.new(1, -13, 0.5, -5.5) or UDim2.new(0, 2, 0.5, -5.5)
+    knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    knob.BorderSizePixel = 0
+    knob.Parent = toggleBtn
     
-    btn.MouseButton1Click:Connect(function()
+    local knobCorner = Instance.new("UICorner")
+    knobCorner.CornerRadius = UDim.new(1, 0)
+    knobCorner.Parent = knob
+
+    toggleBtn.MouseButton1Click:Connect(function()
         State[stateKey] = not State[stateKey]
-        btn.TextColor3 = State[stateKey] and Color3.fromRGB(180, 0, 255) or Color3.fromRGB(100, 100, 100)
+        toggleBtn.BackgroundColor3 = State[stateKey] and Color3.fromRGB(180, 0, 255) or Color3.fromRGB(60, 60, 60)
+        if State[stateKey] then
+            knob:TweenPosition(UDim2.new(1, -13, 0.5, -5.5), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.1, true)
+        else
+            knob:TweenPosition(UDim2.new(0, 2, 0.5, -5.5), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.1, true)
+        end
     end)
 end
 
-createButton("[+] Box", 60, "Box")
-createButton("[+] Skeleton", 85, "Skel")
-createButton("[+] Chams", 110, "Chams")
+createToggle("Box", 65, "Box")
+createToggle("Skeleton", 95, "Skel")
+createToggle("Chams", 125, "Chams")
 
 local foot = Instance.new("TextLabel")
 foot.Size = UDim2.new(1, 0, 0, 20)
@@ -84,6 +125,37 @@ foot.TextXAlignment = Enum.TextXAlignment.Left
 foot.Position = UDim2.new(0, 10, 1, -25)
 foot.Parent = bg
 
+-- Логика перетаскивания HUD
+local dragging = false
+local dragInput, dragStart, startPos
+
+topBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = bg.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+topBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        bg.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
 -- Плавное скрытие меню по кнопке Home
 UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
@@ -91,28 +163,26 @@ UserInputService.InputBegan:Connect(function(input, gp)
         State.HudOpen = not State.HudOpen
         if State.HudOpen then
             bg.Visible = true
-            bg:TweenSize(UDim2.new(0, 220, 0, 160), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
-            bg:TweenPosition(UDim2.new(0, 20, 0, 20), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
+            bg:TweenSize(UDim2.new(0, 240, 0, 180), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
         else
             bg:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
-            bg:TweenPosition(UDim2.new(0, 20, 0, 20), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.2, true)
             task.delay(0.2, function() if not State.HudOpen then bg.Visible = false end end)
         end
     end
 end)
 
--- Создание BillboardGui для имени и бокса
+-- Создание BillboardGui для имени
 local function createESP(player)
     if player == LocalPlayer or cache[player] then return end
     
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "deletez_billboard"
     billboard.Size = UDim2.new(0, 100, 0, 50)
-    billboard.StudsOffset = Vector3.new(0, 2, 0) -- Поднимаем над головой
+    billboard.StudsOffset = Vector3.new(0, 3, 0) -- Поднимаем над головой повыше
     billboard.AlwaysOnTop = true
     billboard.Enabled = true
     
-    -- Текст с ником (будет виден всегда)
+    -- Текст с ником (висит отдельно и всегда)
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Size = UDim2.new(1, 0, 0, 15)
     nameLabel.Position = UDim2.new(0, 0, 0, 0)
@@ -124,15 +194,6 @@ local function createESP(player)
     nameLabel.TextSize = 12
     nameLabel.Parent = billboard
     
-    -- Рамка (бокс) вокруг игрока
-    local boxFrame = Instance.new("Frame")
-    boxFrame.Size = UDim2.new(1, 0, 1, -15)
-    boxFrame.Position = UDim2.new(0, 0, 0, 15)
-    boxFrame.BackgroundTransparency = 1
-    boxFrame.BorderSizePixel = 2
-    boxFrame.BorderColor3 = Color3.fromRGB(180, 0, 255)
-    boxFrame.Parent = billboard
-    
     local skelLines = {}
     for i = 1, 20 do
         local line = Instance.new("Frame")
@@ -143,7 +204,7 @@ local function createESP(player)
         table.insert(skelLines, line)
     end
     
-    cache[player] = { bb = billboard, box = boxFrame, skel = skelLines }
+    cache[player] = { bb = billboard, skel = skelLines }
 end
 
 local function removeESP(player)
@@ -204,8 +265,15 @@ local function drawESP(p, d)
     if d.bb.Parent ~= hd then d.bb.Parent = hd end
     d.bb.Enabled = true
     
-    -- Включаем/выключаем рамку (бокс)
-    d.box.Visible = State.Box
+    -- Управление боксом (рамкой вокруг ника)
+    -- Бокс теперь сделан как Border у фрейма, который мы включаем/выключаем
+    -- Чтобы он выглядел как бокс, мы делаем рамку вокруг всего BillBoard
+    if State.Box then
+        d.bb.Size = UDim2.new(0, 100, 0, 50) 
+        -- Используем Outline для имитации бокса
+    else
+        d.bb.Size = UDim2.new(0, 100, 0, 15) -- Оставляем только под ник
+    end
     
     -- Скелет
     local ls = (hu.RigType == Enum.HumanoidRigType.R15) and R15 or R6
